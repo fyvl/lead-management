@@ -3,8 +3,9 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-import { PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { PencilIcon, TrashIcon, EyeIcon } from '@heroicons/vue/24/outline';
 import EditModal from '@/Pages/EditModal.vue';
+import LeadDescriptionModal from '@/Pages/LeadDescriptionModal.vue';
 
 const leads = ref([]);
 const totalLeads = computed(() => leads.value.length);
@@ -18,7 +19,7 @@ const statusColors = {
 };
 
 const editingLead = ref(null);
-const isModalOpen = ref(false);
+const selectedLead = ref(null);
 
 onMounted(async () => {
     try {
@@ -31,14 +32,20 @@ onMounted(async () => {
     }
 });
 
-const editLead = (lead) => {
+const openEditModal = (lead) => {
     editingLead.value = { ...lead };
-    isModalOpen.value = true;
 };
 
-const closeModal = () => {
+const closeEditModal = () => {
     editingLead.value = null;
-    isModalOpen.value = false;
+};
+
+const viewMessageModal = (lead) => {
+    selectedLead.value = { ...lead };
+};
+
+const closeMessageModal = () => {
+    selectedLead.value = null;
 };
 
 const saveEditedLead = async () => {
@@ -49,7 +56,7 @@ const saveEditedLead = async () => {
         if (index !== -1) {
             leads.value[index] = updatedLead;
         }
-        closeModal();
+        closeEditModal();
     } catch (error) {
         console.error('Ошибка при обновлении лида:', error);
     }
@@ -139,7 +146,10 @@ const deleteLead = async (leadId) => {
                                             </select>
                                         </td>
                                         <td class="py-2 px-4 border-b">
-                                            <button @click="editLead(lead)" class="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">
+                                            <button @click="viewMessageModal(lead)" class="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600">
+                                                <EyeIcon class="w-5 h-5"/>
+                                            </button>
+                                            <button @click="openEditModal(lead)" class="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">
                                                 <PencilIcon class="w-5 h-5"/>
                                             </button>
                                             <button @click="deleteLead(lead.id)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
@@ -154,6 +164,7 @@ const deleteLead = async (leadId) => {
                 </div>
             </div>
         </div>
-        <EditModal v-if="isModalOpen" :editingLead="editingLead" @save="saveEditedLead" @cancel="closeModal" />
+        <EditModal v-if="editingLead" :editingLead="editingLead" @save="saveEditedLead" @cancel="closeEditModal" />
+        <LeadDescriptionModal v-if="selectedLead" :lead="selectedLead" @close="closeMessageModal" />
     </AuthenticatedLayout>
 </template>
