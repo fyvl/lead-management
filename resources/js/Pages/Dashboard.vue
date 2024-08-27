@@ -8,10 +8,28 @@ import EditModal from '@/Pages/EditModal.vue';
 
 const leads = ref([]);
 const totalLeads = computed(() => leads.value.length);
+
 const statuses = ref([]);
+const leadsByStatus = ref({});
+const statusColors = {
+    'Новый': 'bg-blue-100 text-blue-800',
+    'В работе': 'bg-yellow-100 text-yellow-800',
+    'Завершен': 'bg-green-100 text-green-800',
+};
 
 const editingLead = ref(null);
 const isModalOpen = ref(false);
+
+onMounted(async () => {
+    try {
+        const response = await axios.get('/leads');
+        leads.value = response.data.leads;
+        statuses.value = response.data.statuses;
+        leadsByStatus.value = response.data.statusCounts;
+    } catch (error) {
+        console.error('Ошибка при загрузке лидов:', error);
+    }
+});
 
 const editLead = (lead) => {
     editingLead.value = { ...lead };
@@ -37,23 +55,15 @@ const saveEditedLead = async () => {
     }
 };
 
-onMounted(async () => {
-    try {
-        const response = await axios.get('/leads');
-        leads.value = response.data.leads;
-        statuses.value = response.data.statuses;
-    } catch (error) {
-        console.error('Ошибка при загрузке лидов:', error);
-    }
-});
 
-const updateLeadStatus = async (leadId, newStatus) => {
+const updateLeadStatus = async (leadId, newStatusId) => {
     try {
-        await axios.put(`/leads/${leadId}/status`, { status_id: newStatus });
+        await axios.put(`/leads/${leadId}/status`, { status_id: newStatusId });
         const lead = leads.value.find(l => l.id === leadId);
         if (lead) {
-        lead.status.id = newStatus;
+            lead.status.id = newStatusId;
         }
+        window.location.reload();
     } catch (error) {
         console.error('Ошибка при обновлении статуса:', error);
     }
@@ -85,7 +95,11 @@ const deleteLead = async (leadId) => {
                         <div class="mb-8">
                             <h4 class="text-xl font-semibold mb-3">Количество лидов по статусам:</h4>
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                <div v-for="(count, status) in leadsByStatus" :key="status" class="bg-gray-100 p-3 rounded-lg">
+                                <div
+                                    v-for="(count, status) in leadsByStatus"
+                                    :key="status"
+                                    :class="[statusColors[status], 'p-3 rounded-lg']"
+                                >
                                     <span class="font-medium">{{ status }}:</span> {{ count }}
                                 </div>
                             </div>

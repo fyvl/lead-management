@@ -16,9 +16,12 @@ class LeadController extends Controller
         $leads = Lead::with('status')->get();
         $statuses = Status::all();
 
-        $statusCounts = Lead::select('status_id', DB::raw('count(*) as total'))
-                            ->groupBy('status_id')
-                            ->get();
+        $statusCounts = Lead::select('statuses.name', DB::raw('count(*) as count'))
+            ->join('statuses', 'leads.status_id', '=', 'statuses.id')
+            ->groupBy('statuses.id', 'statuses.name')
+            ->get()
+            ->pluck('count', 'name')
+            ->toArray();
 
         return response()->json([
             'leads' => $leads,
@@ -47,7 +50,10 @@ class LeadController extends Controller
         $lead->status_id = $request->status_id;
         $lead->save();
 
-        return response()->json(['success' => true]);
+        return response()->json([
+            'success' => true,
+            'lead' => $lead->fresh()->load('status')
+        ]);
     }
 
     public function update(Request $request, Lead $lead)
