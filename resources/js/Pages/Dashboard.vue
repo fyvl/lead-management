@@ -3,6 +3,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
+import { PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
 
 const leads = ref([]);
 const totalLeads = computed(() => leads.value.length);
@@ -51,54 +52,62 @@ const deleteLead = async (leadId) => {
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
-                        <h3 class="text-lg font-semibold mb-4">Общее количество лидов: {{ totalLeads }}</h3>
+                        <h3 class="text-2xl font-semibold mb-6">Общее количество лидов: {{ totalLeads }}</h3>
                         
-                        <div class="mb-4">
-                        <h4 class="text-md font-semibold">Количество лидов по статусам:</h4>
-                        <ul>
-                            <li v-for="(count, status) in leadsByStatus" :key="status">
-                            {{ status }}: {{ count }}
-                            </li>
-                        </ul>
+                        <div class="mb-8">
+                            <h4 class="text-xl font-semibold mb-3">Количество лидов по статусам:</h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                <div v-for="(count, status) in leadsByStatus" :key="status" class="bg-gray-100 p-3 rounded-lg">
+                                    <span class="font-medium">{{ status }}:</span> {{ count }}
+                                </div>
+                            </div>
                         </div>
-
-                        <table class="min-w-full">
-                            <thead>
-                                <tr>
-                                <th>ID</th>
-                                <th>Имя</th>
-                                <th>Фамилия</th>
-                                <th>Email</th>
-                                <th>Телефон</th>
-                                <th>Дата создания</th>
-                                <th>Статус</th>
-                                <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="lead in leads" :key="lead.id">
-                                <td>{{ lead.id }}</td>
-                                <td>{{ lead.first_name }}</td>
-                                <td>{{ lead.last_name }}</td>
-                                <td>{{ lead.email }}</td>
-                                <td>{{ lead.phone }}</td>
-                                <td>{{ new Date(lead.created_at).toLocaleString() }}</td>
-                                <td>
-                                    <select 
-                                        :value="lead.status.id" 
-                                        @change="updateLeadStatus(lead.id, $event.target.value)"
-                                    >
-                                        <option v-for="status in statuses" :key="status.id" :value="status.id">
-                                            {{ status.name }}
-                                        </option>
-                                    </select>
-                                </td>
-                                <td>
-                                    <button @click="deleteLead(lead.id)" class="text-red-600">Удалить</button>
-                                </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white border border-gray-300">
+                                <thead>
+                                    <tr class="bg-gray-100">
+                                        <th class="py-3 px-4 border-b text-left">ID</th>
+                                        <th class="py-3 px-4 border-b text-left">Имя</th>
+                                        <th class="py-3 px-4 border-b text-left">Фамилия</th>
+                                        <th class="py-3 px-4 border-b text-left">Email</th>
+                                        <th class="py-3 px-4 border-b text-left">Телефон</th>
+                                        <th class="py-3 px-4 border-b text-left">Дата создания</th>
+                                        <th class="py-3 px-4 border-b text-left">Статус</th>
+                                        <th class="py-3 px-4 border-b text-left">Действия</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="lead in leads" :key="lead.id" class="hover:bg-gray-50">
+                                        <td class="py-2 px-4 border-b">{{ lead.id }}</td>
+                                        <td class="py-2 px-4 border-b">{{ lead.first_name }}</td>
+                                        <td class="py-2 px-4 border-b">{{ lead.last_name }}</td>
+                                        <td class="py-2 px-4 border-b">{{ lead.email }}</td>
+                                        <td class="py-2 px-4 border-b">{{ lead.phone }}</td>
+                                        <td class="py-2 px-4 border-b">{{ new Date(lead.created_at).toLocaleString() }}</td>
+                                        <td class="py-2 px-4 border-b">
+                                            <select
+                                                :value="lead.status.id"
+                                                @change="updateLeadStatus(lead.id, $event.target.value)"
+                                                class="border rounded px-3 py-1 w-28"
+                                            >
+                                                <option v-for="status in statuses" :key="status.id" :value="status.id">
+                                                    {{ status.name }}
+                                                </option>
+                                            </select>
+                                        </td>
+                                        <td class="py-2 px-4 border-b">
+                                            <button @click="editLead(lead)" class="bg-blue-500 text-white px-3 py-1 rounded mr-2 hover:bg-blue-600">
+                                                <PencilIcon class="w-5 h-5"/>
+                                            </button>
+                                            <button @click="deleteLead(lead.id)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                                <TrashIcon class="w-5 h-5"/>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
