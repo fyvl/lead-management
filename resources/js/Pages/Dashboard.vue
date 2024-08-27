@@ -4,10 +4,38 @@ import { Head } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import { PencilIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import EditModal from '@/Pages/EditModal.vue';
 
 const leads = ref([]);
 const totalLeads = computed(() => leads.value.length);
 const statuses = ref([]);
+
+const editingLead = ref(null);
+const isModalOpen = ref(false);
+
+const editLead = (lead) => {
+    editingLead.value = { ...lead };
+    isModalOpen.value = true;
+};
+
+const closeModal = () => {
+    editingLead.value = null;
+    isModalOpen.value = false;
+};
+
+const saveEditedLead = async () => {
+    try {
+        const response = await axios.put(`/leads/${editingLead.value.id}`, editingLead.value);
+        const updatedLead = response.data.lead;
+        const index = leads.value.findIndex(l => l.id === updatedLead.id);
+        if (index !== -1) {
+            leads.value[index] = updatedLead;
+        }
+        closeModal();
+    } catch (error) {
+        console.error('Ошибка при обновлении лида:', error);
+    }
+};
 
 onMounted(async () => {
     try {
@@ -112,5 +140,6 @@ const deleteLead = async (leadId) => {
                 </div>
             </div>
         </div>
+        <EditModal v-if="isModalOpen" :editingLead="editingLead" @save="saveEditedLead" @cancel="closeModal" />
     </AuthenticatedLayout>
 </template>
